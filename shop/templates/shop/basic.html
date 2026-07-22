@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+
+  <title>{% block title %}My Cart{% endblock %}</title>
+
+<!-- Custom CSS block -->
+<style>
+    .chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+
+    width: 60px;
+    height: 60px;
+
+    border-radius: 50%;
+    background-color: #007bff;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+    font-size: 28px;
+    text-decoration: none;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+    transition: transform 0.2s ease;
+}
+
+.chat-button:hover {
+    transform: scale(1.1);
+}
+{% block css %}
+{% endblock %}
+</style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">My Cart</a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/shop">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/shop/about">About Us</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/shop/tracker">Tracker</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/shop/contact">Contact Us</a>
+        </li>
+      </ul>
+
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+      <button type="button" class="btn btn-secondary mx-2" data-bs-container="body" data-bs-toggle="popover" id="popcart" data-bs-placement="bottom" data-html="true" data-bs-content="bottom popover">
+        Cart(<span id="cart">0</span>)
+      </button>
+    </div>
+  </nav>
+
+  <!-- BODY CONTENT -->
+  {% block body %}
+
+  {% endblock %}
+  <div id="content">
+  {% block content %}
+  {% endblock %}
+  </div>
+{% load static %}
+
+{% include 'chatbot/widget.html' %}
+<link rel="stylesheet" href="{% static 'chatbot/css/widget.css' %}">
+
+<!-- Scripts -->
+<script src="{% static 'chatbot/js/widget.js' %}"></script>
+
+  <!-- JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  {% block js %} {% endblock %}
+</body>
+
+</html>

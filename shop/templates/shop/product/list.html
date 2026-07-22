@@ -1,0 +1,118 @@
+{% extends "shop/basic.html" %}
+{% block css%}
+/* Sidebar */
+#sidebar {
+    width: 220px;
+    float: left;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+#sidebar h3 {
+    margin-bottom: 15px;
+}
+
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+#sidebar li {
+    margin-bottom: 10px;
+}
+
+#sidebar a {
+    text-decoration: none;
+    color: #333;
+}
+
+#sidebar .selected a {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Main Product Section */
+#main {
+    margin-left: 260px;
+    padding: 20px;
+}
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+/* Product Card */
+.item {
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.item:hover {
+    transform: translateY(-5px);
+}
+
+.item img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.item a {
+    text-decoration: none;
+    color: #222;
+    font-weight: 600;
+    display: block;
+    margin-top: 10px;
+}
+
+.item a:hover {
+    color: #007bff;
+}
+
+.item br + * {
+    color: #28a745;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% load static %}
+{% block title %}
+{% if category %}{{ category.name }}{% else %}Products{% endif %}
+{% endblock %}
+{% block content %}
+<div id="sidebar">
+    <h3>Categories</h3>
+    <ul>
+        <li {% if not category %}class="selected" {% endif %}>
+            <a href="{% url 'shop:product_list' %}">All</a>
+        </li>
+        {% for c in categories %}
+        <li {% if category.slug == c.slug %}class="selected" {% endif %}>
+            <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<div id="main" class="product-list">
+    <h1>{% if category %}{{ category.name }}{% else %}Products{% endif %}</h1>
+    {% for product in products %}
+    <div class="item">
+        <a href="{{ product.get_absolute_url }}">
+            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif%}">
+        </a>
+        <a href="{{ product.get_absolute_url }}">{{ product.product_name }}</a>
+        <br>
+        ${{ product.price }}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

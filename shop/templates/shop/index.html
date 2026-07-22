@@ -1,0 +1,435 @@
+{% extends 'shop/basic.html' %}
+
+{% block css %}
+.card {
+height: 100%;
+display: flex;
+flex-direction: column;
+}
+
+.card-body {
+display: flex;
+flex-direction: column;
+flex: 1;
+}
+
+.card-text {
+flex: 1;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+background-color: blue;
+}
+
+.carousel-indicators li {
+background-color: blue;
+}
+
+.carousel-indicators .active {
+background-color: blue;
+}
+{% endblock %}
+
+{% block body %}
+{% load static %}
+{% csrf_token %}
+<div class="container">
+
+    <!-- Recommended Products -->
+
+    <h1 class="my-4">Recommended Products</h1>
+
+    <div id="recommendedCarousel"
+         class="carousel slide"
+         data-ride="carousel">
+
+        <div class="carousel-inner">
+
+            {% for slide in recommended_products %}
+
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+
+                <div class="row">
+
+                    {% for product in slide %}
+
+                    <div class="col-lg-3 col-md-6 mb-4">
+
+                        <div class="card h-100 shadow-sm">
+
+                            <img
+                                src="{{ product.image.url }}"
+                                loading="lazy"
+                                class="card-img-top"
+                                alt="{{ product.product_name }}"
+                                style="height:300px; object-fit:cover;">
+
+                            <div class="card-body d-flex flex-column">
+
+                                <h5 class="card-title"
+                                    id="namerecpr{{ product.id }}">
+                                    {{ product.product_name|slice:"0:30" }}...
+                                </h5>
+
+                                <h6 class="text-success font-weight-bold mb-2">
+                                    ₹{{ product.price }}
+                                </h6>
+
+                                <div class="mt-auto">
+
+                                    <span id="divrecpr{{ product.id }}"
+                                          class="divpr">
+
+                                        <button
+                                            id="recpr{{ product.id }}"
+                                            class="btn btn-primary recpr"
+                                            data-product-id="{{ product.id }}">
+
+                                            Add To Cart
+
+                                        </button>
+
+                                    </span>
+
+                                    <a href="/shop/products/{{ product.id }}">
+                                        <button class="btn btn-success">
+                                            Buy Now
+                                        </button>
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <a class="carousel-control-prev"
+           href="#recommendedCarousel"
+           role="button"
+           data-slide="prev">
+
+            <span class="carousel-control-prev-icon"></span>
+
+        </a>
+
+        <a class="carousel-control-next"
+           href="#recommendedCarousel"
+           role="button"
+           data-slide="next">
+
+            <span class="carousel-control-next-icon"></span>
+
+        </a>
+
+    </div>
+
+
+    <!-- Category Wise Products -->
+
+    {% for category, products in category_products.items %}
+
+    <h2 class="mt-5 mb-3">{{ category }}</h2>
+
+    <div class="row">
+
+        {% for i in products %}
+
+        <div class="col-lg-3 col-md-6 mb-4">
+
+            <div class="card h-100 shadow-sm">
+
+                <img
+                    src="{{ i.image.url }}"
+                    loading="lazy"
+                    class="card-img-top"
+                    alt="{{ i.product_name }}"
+                    style="height:250px; object-fit:cover;">
+
+                <div class="card-body d-flex flex-column">
+
+                    <h5 class="card-title"
+                        id="namecatpr{{ i.id }}">
+                        {{ i.product_name|slice:"0:30" }}...
+                    </h5>
+
+                    <h6 class="text-success font-weight-bold mb-2">
+                        ₹{{ i.price }}
+                    </h6>
+
+                    <div class="mt-auto">
+
+                        <span id="divcatpr{{ i.id }}"
+                              class="divpr">
+
+                            <button
+                                id="catpr{{ i.id }}"
+                                class="btn btn-primary catpr"
+                                data-product-id="{{ i.id }}">
+
+                                Add To Cart
+
+                            </button>
+
+                        </span>
+
+                        <a href="/shop/products/{{ i.id }}">
+                            <button class="btn btn-success">
+                                Buy Now
+                            </button>
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% endfor %}
+
+</div>
+{% endblock %}
+
+
+{% block js %}
+<script>
+    console.log('working');
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
+    async function fetchCart() {
+        const url = "/cart/api/cart/";
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const data = await response.json();
+            return data
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+
+    }
+
+    async function cartfrontQtyUpdate() {
+        const cartdata = await fetchCart()
+        if (cartdata == null) {
+            let cart = {};
+        } else {
+            console.log(cartdata)
+            document.getElementById('cart').innerHTML = cartdata.item_count;
+            updateCart(cartdata)
+        }
+    }
+
+    async function addToCart(productid, quantity = 1) {
+        const url = '/cart/api/cart/'
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    product_id: productid,
+                    quantity: quantity
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const cart = await fetchCart();
+
+            updateCart(cart, productid);
+
+            return cart;
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+    }
+
+    async function clearCart() {
+        const cartdata = await fetchCart()
+        for (let item of cartdata.items) {
+            document.getElementById('div' + item.id).innerHTML = '<button id="' + item.id + '" class="btn btn-primary">Add to Cart</button>'
+        }
+        const url = '/cart/api/cart/clear/'
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            const cart = await fetchCart()
+            updateCart(cart)
+        }
+        catch (error) {
+            return console.error('Error during deletion:', error)
+        }
+    }
+
+    async function updateCartQty(cartItemId, newquantity) {
+        let url = `/cart/api/cart/${cartItemId}/`
+        try {
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    quantity: newquantity
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            const cart = await fetchCart()
+            return cart
+        }
+        catch (error) {
+            return console.error('Error during deletion:', error)
+        }
+    }
+
+    function updateCart(cartdata, itemId) {
+        if (!cartdata || !itemId) {
+            return
+        }
+        const item = cartdata.items ? cartdata.items.find(i => i.product.id == itemId) : null;
+        const quantity = item ? item.quantity : 0;
+        const cartItemId = item ? item.id : 0;
+        console.log("i am in updatecart")
+        if (document.getElementById('divcatpr' + itemId)) {
+            console.log("Cart got clicked")
+            if (quantity > 0 && cartItemId) {
+                console.log("I came in updatecart in divcatpr")
+                document.getElementById('divcatpr' + itemId).innerHTML = `<button id='minuscat${itemId}' class='btn btn-primary minus' data-product-id='${itemId}' data-cart-item-id='${cartItemId}'> - </button> <span id='valcatpr${itemId}'> ${quantity}</span> <button id='pluscat${itemId}' class='btn btn-primary plus' data-cart-item-id='${cartItemId}' data-product-id="${itemId}"> + </button>`;
+            }
+            else {
+                document.getElementById('divcatpr' + itemId).innerHTML = `<button id='catpr${itemId}' class='btn btn-primary catpr' data-product-id="${itemId}">Add To Cart</button>`;
+            }
+        }
+        if (document.getElementById('divrecpr' + itemId)){
+            console.log("I came in updatecart in divrecpr")
+            console.log("quantity",quantity)
+            console.log("cart",cartItemId)
+            if (quantity > 0 && cartItemId) {
+                console.log("Testing divrecpr")
+                document.getElementById('divrecpr' + itemId).innerHTML = `<button id='minusrec${itemId}' class='btn btn-primary minus' data-product-id='${itemId}' data-cart-item-id='${cartItemId}'> - </button> <span id='valrecpr${itemId}'> ${quantity}</span> <button id='plusrec${itemId}' class='btn btn-primary plus' data-cart-item-id='${cartItemId}' data-product-id="${itemId}"> + </button>`;
+            }
+            else {
+                document.getElementById('divrecpr' + itemId).innerHTML = `<button id='recpr${itemId}' class='btn btn-primary recpr' data-product-id="${itemId}">Add To Cart</button>`;
+            }
+        }
+        document.getElementById('cart').innerHTML = cartdata.item_count || 0;
+    }
+
+    $('.cart').on("click", async function () {
+        console.log("I got clicked")
+        let itemId = this.dataset.productId
+        console.log("itemid", itemId)
+        const cartdata = await addToCart(itemId, 1)
+        if (cartdata) {
+            updateCart(cartdata, itemId)
+        }
+    })
+
+    $('.divpr').on("click", '.recpr', async function () {
+        console.log("rec got clicked")
+        const productid = this.dataset.productId || $(this).attr('data-product-id');
+        const quantity = 1;
+        await addToCart(productid, quantity);
+    });
+    
+    $('.divpr').on("click", '.catpr', async function () {
+        console.log("cat got clicked")
+        const productid = this.dataset.productId || $(this).attr('data-product-id');
+        const quantity = 1;
+        await addToCart(productid, quantity);
+    });
+
+    $('.divpr').on("click", "button.plus", async function (event) {
+        console.log("plus clicked")
+        event.stopPropagation()
+        let cartItemId = this.dataset.cartItemId
+        let itemId = this.dataset.productId
+        console.log(itemId)
+        let buttonid = this.id
+        if (buttonid.includes('cat')) {
+            console.log(document.getElementById('valcatpr' + itemId).innerHTML)
+            document.getElementById('valcatpr' + itemId).innerHTML = parseInt(document.getElementById('valcatpr' + itemId).innerHTML) + 1;
+            newquantity = document.getElementById('valcatpr' + itemId).innerHTML;
+        }
+        else {
+            document.getElementById('valrecpr' + itemId).innerHTML = parseInt(document.getElementById('valrecpr' + itemId).innerHTML) + 1;
+            newquantity = document.getElementById('valrecpr' + itemId).innerHTML;
+        }
+        const cart = await updateCartQty(cartItemId, newquantity);
+        if (cart) {
+            updateCart(cart, itemId);
+        }
+    });
+    
+    $('.divpr').on("click", "button.minus", async function (event) {
+        console.log("minus clicked")
+        event.stopPropagation()
+        let cartItemId = this.dataset.cartItemId
+        let itemId = this.dataset.productId;
+        let buttonid = this.id
+        console.log(buttonid)
+        if (buttonid.includes('cat')) {
+            console.log(document.getElementById('valcatpr' + itemId).innerHTML)
+            document.getElementById('valcatpr' + itemId).innerHTML = parseInt(document.getElementById('valcatpr' + itemId).innerHTML) - 1;
+            document.getElementById('valcatpr' + itemId).innerHTML = Math.max(0, document.getElementById('valcatpr' + itemId).innerHTML)
+            newquantity = document.getElementById('valcatpr' + itemId).innerHTML;
+        }
+        else{
+            document.getElementById('valrecpr' + itemId).innerHTML = parseInt(document.getElementById('valrecpr' + itemId).innerHTML) - 1;
+            document.getElementById('valrecpr' + itemId).innerHTML = Math.max(0, document.getElementById('valrecpr' + itemId).innerHTML)
+            newquantity = document.getElementById('valrecpr' + itemId).innerHTML;
+        }
+
+        const cart = await updateCartQty(cartItemId, newquantity);
+        if (cart) {
+            updateCart(cart, itemId);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,341 @@
+{% extends "shop/basic.html" %}
+{% load static %}
+
+{% block css %}
+.cart {
+width: 100%;
+border-collapse: collapse;
+background: #fff;
+margin-top: 30px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.cart th {
+background: #343a40;
+color: white;
+padding: 15px;
+text-align: center;
+}
+
+.cart td {
+padding: 20px;
+text-align: center;
+vertical-align: middle;
+border-bottom: 1px solid #e9ecef;
+}
+
+.cart tr:hover {
+background-color: #f8f9fa;
+}
+
+.cart img {
+width: 90px;
+height: 90px;
+object-fit: cover;
+border-radius: 8px;
+}
+
+.cart .total {
+background: #f8f9fa;
+font-weight: bold;
+font-size: 1.1rem;
+}
+
+.cart input[type="submit"] {
+border: none;
+padding: 8px 14px;
+border-radius: 5px;
+cursor: pointer;
+background: #007bff;
+color: white;
+}
+
+.cart input[type="submit"]:hover {
+opacity: 0.9;
+}
+
+.text-right {
+margin-top: 25px;
+display: flex;
+justify-content: space-between;
+}
+
+.button {
+display: inline-block;
+padding: 12px 20px;
+border-radius: 6px;
+text-decoration: none;
+background: #28a745;
+color: white;
+font-weight: 500;
+}
+
+.button:hover {
+text-decoration: none;
+color: white;
+opacity: 0.9;
+}
+
+.button.light {
+background: #6c757d;
+}
+
+h1 {
+text-align: center;
+margin: 30px 0;
+font-weight: 700;
+}
+
+#content {
+max-width: 1200px;
+margin: auto;
+padding: 20px;
+}
+
+{% endblock %}
+
+{% block title %}
+Your Shopping Cart
+{% endblock %}
+
+{% block content %}
+
+<div class="cart-container">
+
+    <h1 class="cart-title">🛒 Your Shopping Cart</h1>
+
+    <table class="cart-table">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Remove</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in cart %}
+            {% with product=item.product %}
+            <tr>
+
+                <td>
+                    <a href="{{ product.get_absolute_url }}">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.product_name }}" class="cart-image">
+                        {% else %}
+                        <img src="{% static 'img/no_image.png' %}" alt="No image" class="cart-image">
+                        {% endif %}
+                    </a>
+                </td>
+
+                <td class="product-name">
+                    {{ product.product_name }}
+                </td>
+
+                <td>
+                    <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                        {{ item.update_quantity_form.quantity }}
+                        {{ item.update_quantity_form.override }}
+                        <button type="submit" class="btn-update">
+                            Update
+                        </button>
+                        {% csrf_token %}
+                    </form>
+                </td>
+
+                <td>
+                    <form action="{% url 'cart:cart_remove' product.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-remove">
+                            Remove
+                        </button>
+                    </form>
+                </td>
+
+                <td class="price">
+                    ₹{{ item.price }}
+                </td>
+
+                <td class="price">
+                    ₹{{ item.total_price }}
+                </td>
+
+            </tr>
+            {% endwith %}
+            {% endfor %}
+
+            <tr class="cart-total">
+                <td colspan="5">
+                    <strong>Grand Total</strong>
+                </td>
+                <td>
+                    <strong>₹{{ cart.get_total_price }}</strong>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <div class="cart-actions">
+        <a href="{% url 'shop:product_list' %}" class="btn-continue">
+            Continue Shopping
+        </a>
+
+        <a href="#" class="btn-checkout">
+            Checkout
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+    console.log('working');
+    async function fetchCart() {
+        const url = "cart/api/cart/";
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const data = await response.json();
+            console.log(data);
+            return data
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+
+    }
+
+    async function cartfrontQtyUpdate() {
+        const cartdata = await fetchCart()
+        if (cartdata == null) {
+            let cart = {};
+        } else {
+            console.log(cartdata)
+            document.getElementById('cart').innerHTML = cartdata.item_count;
+            updateCart(cartdata)
+        }
+    }
+
+    async function updateCart(cartdata) {
+        for (let item of cartdata.items) {
+            console.log(item.id)
+            if (document.getElementById('div' + item.id)) {
+                document.getElementById('div' + item.id).innerHTML = "<button id='minus" + item.id + "' class='btn btn-primary minus'>-</button> <span id='val" + item.id + "'>" + item.quantity + "</span> <button id='plus" + item.id + "' class='btn btn-primary plus'> + </button>";
+            }
+        }
+        document.getElementById('cart').innerHTML = cartdata.item_count || 0;
+    }
+
+    async function addToCart(productid, quantity = 1) {
+        const url = '/cart/api/cart/'
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    product_id: productid,
+                    quantity: quantity
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const cart = await fetchCart();
+
+            updateCart(cart);
+
+            return cart;
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+    }
+    $('.cart').click(async function () {
+        const productid = this.id;
+        console.log(productid)
+        const quantity = 1;
+
+        await addToCart(productid, quantity);
+    });
+
+    async function clearCart() {
+        const cartdata = await fetchCart()
+        for (let item of cartdata.items) {
+            document.getElementById('div' + item.id).innerHTML = '<button id="' + item.id + '" class="btn btn-primary">Add to Cart</button>'
+        }
+        const url = '/cart/api/cart/clear/'
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            const cart = await fetchCart()
+            updateCart(cart)
+        }
+        catch (error) {
+            return console.error('Error during deletion:', error)
+        }
+    }
+
+    
+    
+    $('.divpr').on("click", "button.minus", function () {
+        let a = this.id.slice(10); /* Adjust slice offset depending on matching layout strings */
+
+        cartids = this.id.toString()
+        if (cartids.includes('cat')) {
+            cart['catpr' + a][0] = cart['catpr' + a][0] - 1;
+            cart['catpr' + a][0] = Math.max(0, cart['catpr' + a][0])
+            console.log(cart['catpr' + a][0])
+            document.getElementById('valcatpr' + a).innerHTML = cart['catpr' + a][0];
+            updateCart(cart);
+        }
+        else {
+            cart['recpr' + a][0] = cart['recpr' + a][0] - 1;
+            cart['recpr' + a][0] = Math.max(0, cart['recpr' + a][0])
+            console.log(cart['recpr' + a][0])
+            document.getElementById('valrecpr' + a).innerHTML = cart['recpr' + a][0];
+            updateCart(cart);
+        }
+    });
+
+    $('.divpr').on("click", "button.plus", function () {
+        let a = this.id.slice(9);
+        cartids = this.id.toString()
+        if (cartids.includes('cat')) {
+            cart['catpr' + a][0] = cart['catpr' + a][0] + 1;
+            document.getElementById('valcatpr' + a).innerHTML = cart['catpr' + a][0]
+            updateCart(cart);
+        }
+        else {
+            cart['recpr' + a][0] = cart['recpr' + a][0] + 1;
+            document.getElementById('valrecpr' + a).innerHTML = cart['recpr' + a][0]
+            updateCart(cart);
+        }
+    });
+</script>
+{% endblock %}

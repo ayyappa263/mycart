@@ -1,0 +1,46 @@
+<!-- Chatbot Widget -->
+<div id="chat-widget">
+    <!-- Floating Button -->
+    <button id="chat-toggle">💬</button>
+
+    <!-- Chat Window -->
+    <div id="chat-container">
+        <!-- Header -->
+        <div id="chat-header">
+            <h3>MyCart Assistant</h3>
+            <button id="chat-close">✕</button>
+        </div>
+
+        <!-- Messages Container (Your JS renders inside this) -->
+        <div id="chat-messages"></div>
+
+        <!-- Input Area -->
+        <div id="chat-input-area">
+
+            <!-- Image Preview -->
+            <div id="preview-wrapper" style="display:none;">
+                <img id="preview" alt="Image Preview">
+                <button type="button" id="remove-image">✕</button>
+            </div>
+
+            <!-- Input Row -->
+            <div class="input-row">
+
+                <label for="imageUpload" class="upload-btn" title="Upload Image">
+                    +
+                </label>
+
+                <input type="file" id="imageUpload" accept="image/*" hidden>
+
+                <input type="text" id="user-input" placeholder="Ask Assistant..." autocomplete="off">
+
+                <button id="send-btn" title="Send Message">
+                    ➤
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>

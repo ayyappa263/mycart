@@ -1,0 +1,274 @@
+{% extends "shop/basic.html" %}
+{% block css %}
+/* Product Detail Container */
+.product-detail {
+max-width: 800px;
+margin: 40px auto;
+padding: 25px;
+background: #ffffff;
+border-radius: 12px;
+box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+text-align: center;
+}
+
+/* Product Image */
+.product-detail img {
+width: 100%;
+max-width: 450px;
+height: auto;
+border-radius: 10px;
+margin-bottom: 20px;
+}
+
+/* Product Name */
+.product-detail h1 {
+font-size: 2rem;
+margin-bottom: 10px;
+color: #222;
+}
+
+/* Category */
+.product-detail h2 {
+font-size: 1.2rem;
+margin-bottom: 15px;
+font-weight: normal;
+}
+
+.product-detail h2 a {
+text-decoration: none;
+color: #007bff;
+}
+
+.product-detail h2 a:hover {
+text-decoration: underline;
+}
+
+/* Price */
+.price {
+font-size: 2rem;
+font-weight: bold;
+color: #28a745;
+margin: 20px 0;
+}
+
+/* Description */
+.product-detail p {
+line-height: 1.8;
+color: #555;
+font-size: 1rem;
+}
+{% endblock %}
+{% load static %}
+{% block title %}
+{{ product.product_name }}
+{% endblock %}
+{% block content %}
+<div class="product-detail">
+    {% csrf_token %}
+    <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}">
+    <h1>{{ product.product_name }}</h1>
+    <h2>
+        <a href="{{ product.category.get_absolute_url }}">
+            {{ product.category }}
+        </a>
+    </h2>
+    <p class="price">${{ product.price }}</p>
+
+    <div class="mt-auto">
+        <span id="divcatpr{{product.Product_id}}" class="divpr">
+            <button id="catpr{{product.id}}" class="btn btn-primary catpr" data-product-id="{{product.id}}">
+                Add To Cart
+            </button>
+        </span>
+        <a href="/shop/products/{{product.id}}">
+            <button class="btn btn-success">
+                Buy Now
+            </button>
+        </a>
+    </div>
+    {{ product.description|linebreaks }}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
+    async function fetchCart() {
+        const url = "/cart/api/cart/";
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const data = await response.json();
+            return data
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+
+    }
+
+    async function cartfrontQtyUpdate() {
+        const cartdata = await fetchCart()
+        if (cartdata == null) {
+            let cart = {};
+        } else {
+            console.log(cartdata)
+            document.getElementById('cart').innerHTML = cartdata.item_count;
+            updateCart(cartdata)
+        }
+    }
+
+    async function addToCart(productid, quantity = 1) {
+        const url = '/cart/api/cart/'
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    product_id: productid,
+                    quantity: quantity
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            const cart = await fetchCart();
+
+            updateCart(cart, productid);
+
+            return cart;
+        }
+        catch (error) {
+            console.log("Error", error.message)
+            return null
+        }
+    }
+
+    async function clearCart() {
+        const cartdata = await fetchCart()
+        for (let item of cartdata.items) {
+            document.getElementById('div' + item.id).innerHTML = '<button id="' + item.id + '" class="btn btn-primary">Add to Cart</button>'
+        }
+        const url = '/cart/api/cart/clear/'
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            const cart = await fetchCart()
+            updateCart(cart)
+        }
+        catch (error) {
+            return console.error('Error during deletion:', error)
+        }
+    }
+
+    async function updateCartQty(cartItemId, newquantity) {
+        let url = `/cart/api/cart/${cartItemId}/`
+        try {
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    quantity: newquantity
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            const cart = await fetchCart()
+            return cart
+        }
+        catch (error) {
+            return console.error('Error during deletion:', error)
+        }
+    }
+
+    function updateCart(cartdata, itemId) {
+        if (!cartdata || !itemId) {
+            return
+        }
+        const item = cartdata.items ? cartdata.items.find(i => i.product.id == itemId) : null;
+        const quantity = item ? item.quantity : 0;
+        const cartItemId = item ? item.id : 0;
+        console.log("i am in updatecart")
+        if (document.getElementById('divcatpr' + itemId)) {
+            console.log("Cart got clicked")
+            if (quantity > 0 && cartItemId) {
+                document.getElementById('divcatpr' + itemId).innerHTML = `<button id='minus${itemId}' class='btn btn-primary minus' data-product-id='${itemId}' data-cart-item-id='${cartItemId}'> - </button> <span id='val${itemId}'> ${quantity} </span> <button id='plus${itemId}' class='btn btn-primary plus' data-cart-item-id='${cartItemId}'> + </button>`;
+            }
+            else {
+                document.getElementById('divcatpr' + itemId).innerHTML = `<button id='catpr${itemId}' class='btn btn-primary catpr' data-product-id="${itemId}">Add To Cart</button>`;
+            }
+        }
+        document.getElementById('cart').innerHTML = cartdata.item_count || 0;
+    }
+
+    $('.cart').on("click", async function () {
+        let itemId = this.dataset.productId
+        console.log("itemid", itemId)
+        const cartdata = await addToCart(itemId, 1)
+        if (cartdata) {
+            updateCart(cartdata, itemId)
+        }
+    })
+
+    $('.divpr').on("click", '.catpr', async function () {
+        const productid = this.dataset.productId || $(this).attr('data-product-id');
+        const quantity = 1;
+        await addToCart(productid, quantity);
+    });
+
+    $('.divpr').on("click", "button.plus", async function (event) {
+        event.stopPropagation()
+        let cartItemId = this.dataset.cartItemId
+        let itemId = this.id.slice(4)
+        console.log(itemId)
+        document.getElementById('val' + itemId).innerHTML = parseInt(document.getElementById('val' + itemId).innerHTML) + 1;
+        newquantity = document.getElementById('val' + itemId).innerHTML;
+        const cart = await updateCartQty(cartItemId, newquantity);
+        if (cart) {
+            updateCart(cart, itemId);
+        }
+    });
+
+    $('.divpr').on("click", "button.minus", async function (event) {
+        event.stopPropagation()
+        console.log("clicked plus")
+        let cartItemId = this.dataset.cartItemId
+        let itemId = this.dataset.productId;
+        document.getElementById('val' + itemId).innerHTML = parseInt(document.getElementById('val' + itemId).innerHTML) - 1;
+        document.getElementById('val' + itemId).innerHTML = Math.max(0, document.getElementById('val' + itemId).innerHTML)
+        newquantity = document.getElementById('val' + itemId).innerHTML;
+        const cart = await updateCartQty(cartItemId, newquantity);
+        if (cart) {
+            updateCart(cart, itemId);
+        }
+    });
+
+</script>
+{% endblock %}
