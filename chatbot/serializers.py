@@ -26,10 +26,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 
         products = Product.objects.filter(id__in=obj.product_ids)
 
-        product_map = {
-            product.id: product
-            for product in products
-        }
+        product_map = {product.id: product for product in products}
 
         result = []
 
