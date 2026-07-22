@@ -20,11 +20,11 @@ The core of this is a LangGraph state graph:
 Chat state (including multi-turn context) is handled by LangGraph's checkpointer, keyed by the Django session ID.
 
 Tech Stack
-Backend: Django, Django REST Framework,
-Agent / RAG: LangGraph, LangChain, ChromaDB, HuggingFace sentence-transformers for embeddings,
-LLMs: Ollama running locally — llama3.2:3b for routing/extraction/generation, qwen2.5vl:3b for the vision,
-Frontend: Vanilla JavaScript,
-Database: PostgreSQL
+1. Backend: Django, Django REST Framework,
+2. RAG: LangGraph, LangChain, ChromaDB, HuggingFace sentence-transformers for embeddings,
+3. LLMs: Ollama running locally — llama3.2:3b for routing/extraction/generation, qwen2.5vl:3b for the vision,
+4. Frontend: Vanilla JavaScript,
+5. Database: PostgreSQL
 
 What I will do next
 1. Cut down the number of sequential LLM calls per turn (currently up to 4–5 — contextual rewrite, routing, extraction, generation) since that's the main latency cost right now, making the RAG with more optimized code.
