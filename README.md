@@ -2,9 +2,9 @@
 
 AI Fashion Shopping Assistant
 
-A chatbot built on Django e-commerce site that lets users search for products, or by uploading a photo of something similar to what they want. Built as a way to actually learn how agentic RAG systems work in practice not just wire up a single LLM call, but build something with real routing, retrieval, and failure handling.
+A chatbot built on Django e-commerce site that lets users search for products, or by uploading a photo of something similar to what they want. Built as a way to actually learn how agentic RAG systems work in practice, but build something with real routing, retrieval, and failure handling.
 
-What the shopping assistant does
+What the shopping assistant does - 
 Ask for products something like "formal shoes for men under 1500" and get recommendations pulled from the actual product catalog, not made up.
 Upload a photo of an item and get similar products, using the same underlying filter pipeline as text search.
 Chat history persists per session and reloads correctly, including any product cards shown earlier.
