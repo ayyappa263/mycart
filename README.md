@@ -27,6 +27,6 @@ Tech Stack
 5. Database: PostgreSQL
 
 What I will do next
-1. Cut down the number of sequential LLM calls per turn (currently up to 4–5 — contextual rewrite, routing, extraction, generation) since that's the main latency cost right now, making the RAG with more optimized code.
+1. Cut down the number of sequential LLM calls per turn (contextual rewrite, routing, extraction, generation) since that's the main latency cost right now, making the RAG with more optimized code.
 2. For storing conversation will use Postgres-backed LangGraph checkpointer instead of memory so conversation state survives after a server restart, not just runs in memory.
 3. Fine tuning of local model, as I had observed that some of the product which is unfamiliar for model not fetching the results correctly.
