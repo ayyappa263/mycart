@@ -20,10 +20,10 @@ The core of this is a LangGraph state graph:
 Chat state (including multi-turn context) is handled by LangGraph's checkpointer, keyed by the Django session ID.
 
 Tech Stack
-Backend: Django, Django REST Framework
-Agent / RAG: LangGraph, LangChain, ChromaDB, HuggingFace sentence-transformers for embeddings
-LLMs: Ollama running locally — llama3.2:3b for routing/extraction/generation, qwen2.5vl:3b for the vision
-Frontend: plain JavaScript (fetch-based chat widget)
+Backend: Django, Django REST Framework,
+Agent / RAG: LangGraph, LangChain, ChromaDB, HuggingFace sentence-transformers for embeddings,
+LLMs: Ollama running locally — llama3.2:3b for routing/extraction/generation, qwen2.5vl:3b for the vision,
+Frontend: Vanilla JavaScript,
 Database: PostgreSQL
 
 What I will do next
